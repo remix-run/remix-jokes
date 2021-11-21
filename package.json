@@ -10,7 +10,6 @@
     "build": "remix build",
     "dev": "remix dev",
     "postinstall": "remix setup node",
-    "deploy": "fly deploy",
     "start": "remix-serve build"
   },
   "dependencies": {
