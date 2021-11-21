@@ -31,6 +31,8 @@ WORKDIR /app
 
 COPY --from=deps /app/node_modules /app/node_modules
 
+ENV NODE_ENV=production
+
 ADD prisma .
 RUN npx prisma generate
 
