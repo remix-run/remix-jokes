@@ -1,6 +1,7 @@
-import type {
+import {
   ActionFunction,
   HeadersFunction,
+  Link,
   LinksFunction,
   MetaFunction,
 } from "remix";
@@ -192,6 +193,10 @@ export default function Login() {
             Submit
           </button>
         </Form>
+      </div>
+      <br />
+      <div>
+        <Link to="/">Back home</Link>
       </div>
     </div>
   );

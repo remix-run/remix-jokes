@@ -36,7 +36,6 @@ export let links: LinksFunction = () => {
 
 export default function JokesScreen() {
   let data = useLoaderData<LoaderData>();
-  let transition = useTransition();
 
   return (
     <div className="jokes-layout">
