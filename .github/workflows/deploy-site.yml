@@ -10,8 +10,7 @@ jobs:
     name: 🚀 Deploy
     runs-on: ubuntu-latest
     # only build/deploy main branch on pushes
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' &&
-      needs.changes.outputs.DEPLOYABLE == 'true' }}
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
 
     steps:
       - name: 🛑 Cancel Previous Runs
