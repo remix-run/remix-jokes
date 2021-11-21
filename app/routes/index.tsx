@@ -34,7 +34,7 @@ export default function Index() {
               <Link to="jokes">Read Jokes</Link>
             </li>
             <li>
-              <Link to="https://github.com/remix-run/remix-jokes">GitHub</Link>
+              <Link reloadDocument to="https://github.com/remix-run/remix-jokes">GitHub</Link>
             </li>
             <li>
               <Link reloadDocument to="/jokes.rss">
