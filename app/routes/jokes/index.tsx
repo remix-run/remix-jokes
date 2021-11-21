@@ -13,10 +13,11 @@ export let loader: LoaderFunction = async ({ request }) => {
     : 0;
   let randomRowNumber = Math.floor(Math.random() * count);
   let [randomJoke] =
-    count > 0
+    count > 0 && userId
       ? await db.joke.findMany({
           take: 1,
           skip: randomRowNumber,
+          where: { jokesterId: userId },
         })
       : [];
   if (!randomJoke) {
