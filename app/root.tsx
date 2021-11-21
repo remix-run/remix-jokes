@@ -85,7 +85,7 @@ function Document({
 
 export default function App() {
   return (
-    <Document>
+    <Document title="Remix: It's funny!">
       <Outlet />
     </Document>
   );
