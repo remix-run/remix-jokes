@@ -2,6 +2,10 @@ import type { LoaderFunction } from "remix";
 import { db } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
 
+function escapeCdata(s: string) {
+  return s.replaceAll("]]>", "]]]]><![CDATA[>");
+}
+
 export let loader: LoaderFunction = async ({ request }) => {
   let userId = await getUserId(request);
   let jokes = userId
@@ -35,9 +39,9 @@ export let loader: LoaderFunction = async ({ request }) => {
           .map((joke) =>
             `
             <item>
-              <title>${joke.name}</title>
-              <description>A funny joke called ${joke.name}</description>
-              <author>${joke.jokester.username}</author>
+              <title><![CDATA[${escapeCdata(joke.name)}]]></title>
+              <description><![CDATA[A funny joke called ${escapeCdata(joke.name)}]]></description>
+              <author><![CDATA[${escapeCdata(joke.jokester.username)}]]></author>
               <pubDate>${joke.createdAt}</pubDate>
               <link>${jokesUrl}/${joke.id}</link>
               <guid>${jokesUrl}/${joke.id}</guid>
