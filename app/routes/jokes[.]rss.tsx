@@ -6,6 +6,10 @@ function escapeCdata(s: string) {
   return s.replaceAll("]]>", "]]]]><![CDATA[>");
 }
 
+function escapeHtml(s: string) {
+  return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+}
+
 export let loader: LoaderFunction = async ({ request }) => {
   let userId = await getUserId(request);
   let jokes = userId
@@ -40,7 +44,7 @@ export let loader: LoaderFunction = async ({ request }) => {
             `
             <item>
               <title><![CDATA[${escapeCdata(joke.name)}]]></title>
-              <description><![CDATA[A funny joke called ${escapeCdata(joke.name)}]]></description>
+              <description><![CDATA[A funny joke called ${escapeHtml(joke.name)}]]></description>
               <author><![CDATA[${escapeCdata(joke.jokester.username)}]]></author>
               <pubDate>${joke.createdAt}</pubDate>
               <link>${jokesUrl}/${joke.id}</link>
