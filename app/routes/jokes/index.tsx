@@ -1,6 +1,6 @@
-import type { LoaderFunction } from "remix";
-import { useLoaderData, Link, useCatch } from "remix";
 import type { Joke } from "@prisma/client";
+import type { LoaderFunction } from "remix";
+import { Link, useCatch, useLoaderData } from "remix";
 import { db } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
 
@@ -59,7 +59,7 @@ export function CatchBoundary() {
   if (caught.status === 404) {
     return (
       <div className="error-container">
-        <p>There are no jokes to display.</p>
+        <p>There are no jokes to display but you.</p>
         <Link to="new">Add your own</Link>
       </div>
     );
