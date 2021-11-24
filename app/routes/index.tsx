@@ -4,7 +4,7 @@ import stylesUrl from "../styles/index.css";
 
 export let meta: MetaFunction = () => {
   return {
-    title: "Remix: It's funny!",
+    title: "Remix: So great, it's funny!",
     description: "Remix jokes app. Learn Remix and laugh at the same time!",
   };
 };
