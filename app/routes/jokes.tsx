@@ -1,26 +1,39 @@
 import { LoaderFunction, LinksFunction } from "remix";
-import { Form, useTransition } from "remix";
+import { Form } from "remix";
 import { Outlet, useLoaderData, Link } from "remix";
-import { db } from "~/utils/db.server";
-import type { User } from "@prisma/client";
 import { getUser } from "~/utils/session.server";
 import stylesUrl from "../styles/jokes.css";
+import { client } from "~/lib/graphcms";
+import { gql } from "graphql-request";
+
+type User = {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  username: string;
+  passwordHash: string;
+};
 
 type LoaderData = {
   user: User | null;
   jokeListItems: Array<{ id: string; name: string }>;
 };
 
+const GetJokesByUser = gql`
+  query GetJokesByUser($userId: ID!) {
+    jokes(where: { jokester: { id: $userId } }) {
+      id
+      name
+    }
+  }
+`;
+
 export let loader: LoaderFunction = async ({ request }) => {
   let user = await getUser(request);
-  let jokeListItems = user
-    ? await db.joke.findMany({
-        take: 5,
-        select: { id: true, name: true },
-        orderBy: { createdAt: "desc" },
-        where: { jokesterId: user.id },
-      })
-    : [];
+
+  let { jokes: jokeListItems } = await client.request(GetJokesByUser, {
+    userId: user.id,
+  });
 
   let data: LoaderData = {
     jokeListItems,

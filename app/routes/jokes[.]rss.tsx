@@ -1,17 +1,31 @@
 import type { LoaderFunction } from "remix";
-import { db } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
+import { gql } from "graphql-request";
+import { client } from "~/lib/graphcms";
+
+const GetJokesWithJokster = gql`
+  query GetJokesWithJokster($joksterId: ID!) {
+    jokes(
+      where: { jokester: { id: $joksterId } }
+      orderBy: createdAt_DESC
+      first: 100
+    ) {
+      id
+      name
+      content
+      jokester {
+        username
+      }
+    }
+  }
+`;
 
 export let loader: LoaderFunction = async ({ request }) => {
   let userId = await getUserId(request);
-  let jokes = userId
-    ? await db.joke.findMany({
-        take: 100,
-        orderBy: { createdAt: "desc" },
-        include: { jokester: { select: { username: true } } },
-        where: { jokesterId: userId },
-      })
-    : [];
+
+  let { jokes } = await client.request(GetJokesWithJokster, {
+    joksterId: userId,
+  });
 
   const host =
     request.headers.get("X-Forwarded-Host") ?? request.headers.get("host");

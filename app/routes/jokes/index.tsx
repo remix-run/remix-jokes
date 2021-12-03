@@ -1,21 +1,40 @@
 import type { LoaderFunction } from "remix";
 import { useLoaderData, Link, useCatch } from "remix";
-import type { Joke } from "@prisma/client";
-import { db } from "~/utils/db.server";
 import { getUserId } from "~/utils/session.server";
+import { client } from "~/lib/graphcms";
+import { gql } from "graphql-request";
+
+type Jokster = {
+  id: string;
+};
+
+type Joke = {
+  id: string;
+  name: string;
+  content: string;
+  jokester: Jokster;
+};
 
 type LoaderData = { randomJoke: Joke };
+
+const GetAllJokesByUser = gql`
+  query GetAllJokesByUser($userId: ID!) {
+    jokes(where: { jokester: { id: $userId } }) {
+      id
+      name
+      content
+    }
+  }
+`;
 
 export let loader: LoaderFunction = async ({ request }) => {
   let userId = await getUserId(request);
 
   // this isn't how you should do it, but the proper way was not working
   // in production... I think it's fly's fault actually...
-  let jokes = userId
-    ? await db.joke.findMany({
-        where: { jokesterId: userId },
-      })
-    : [];
+
+  let { jokes } = await client.request(GetAllJokesByUser, { userId });
+
   let randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
 
   // Here's the proper way:

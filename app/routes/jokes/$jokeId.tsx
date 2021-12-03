@@ -4,12 +4,23 @@ import type {
   MetaFunction,
   HeadersFunction,
 } from "remix";
-import { json, useLoaderData, useCatch, Link, Form, redirect } from "remix";
+import { json, useLoaderData, useCatch, redirect } from "remix";
 import { useParams } from "react-router-dom";
-import type { Joke } from "@prisma/client";
-import { db } from "~/utils/db.server";
 import { getUserId, requireUserId } from "~/utils/session.server";
 import { JokeDisplay } from "~/components/joke";
+import { client } from "~/lib/graphcms";
+import { gql } from "graphql-request";
+
+type Jokster = {
+  id: string;
+};
+
+type Joke = {
+  id: string;
+  name: string;
+  content: string;
+  jokester: Jokster;
+};
 
 export let meta: MetaFunction = ({
   data,
@@ -30,17 +41,43 @@ export let meta: MetaFunction = ({
 
 type LoaderData = { joke: Joke; isOwner: boolean };
 
+const GetJokeById = gql`
+  query GetJokeById($jokeId: ID!) {
+    joke(where: { id: $jokeId }) {
+      id
+      name
+      content
+      jokester {
+        id
+      }
+    }
+  }
+`;
+
+const DeleteJokeById = gql`
+  mutation DeleteJokeById($jokeId: ID!) {
+    deleteJoke(where: { id: $jokeId }) {
+      id
+    }
+  }
+`;
+
 export let loader: LoaderFunction = async ({ request, params }) => {
   let userId = await getUserId(request);
-  let joke = userId
-    ? await db.joke.findFirst({
-        where: { id: params.jokeId, jokesterId: userId },
-      })
-    : null;
+
+  let { joke } = await client.request(GetJokeById, {
+    jokeId: params.jokeId,
+  });
+
   if (!joke) {
     throw new Response("What a joke! Not found.", { status: 404 });
   }
-  let data: LoaderData = { joke, isOwner: userId === joke.jokesterId };
+
+  if (joke.jokester.id !== userId) {
+    throw new Response("What a joke! Not found.", { status: 404 });
+  }
+
+  let data: LoaderData = { joke, isOwner: userId === joke.jokester.id };
   return json(data, {
     headers: {
       "Cache-Control": `public, max-age=${60 * 5}, s-maxage=${60 * 60 * 24}`,
@@ -59,18 +96,18 @@ export let headers: HeadersFunction = ({ loaderHeaders }) => {
 export let action: ActionFunction = async ({ request, params }) => {
   if (request.method === "DELETE") {
     let userId = await requireUserId(request);
-    let joke = await db.joke.findFirst({
-      where: { id: params.jokeId, jokesterId: userId },
+    let { joke } = await client.request(GetJokeById, {
+      jokeId: params.jokeId,
     });
     if (!joke) {
       throw new Response("Can't delete what does not exist", { status: 404 });
     }
-    if (joke.jokesterId !== userId) {
+    if (joke.jokester.id !== userId) {
       throw new Response("Pssh, nice try. That's not your joke", {
         status: 401,
       });
     }
-    await db.joke.delete({ where: { id: params.jokeId } });
+    await client.request(DeleteJokeById, { jokeId: params.jokeId });
     return redirect("/jokes");
   }
 };

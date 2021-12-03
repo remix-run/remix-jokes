@@ -1,5 +1,10 @@
 import { Link, Form } from "remix";
-import type { Joke } from "@prisma/client";
+
+interface Joke {
+  id: string;
+  name: string;
+  content: string;
+}
 
 export function JokeDisplay({
   joke,

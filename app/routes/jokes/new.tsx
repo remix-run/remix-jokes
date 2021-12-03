@@ -8,8 +8,9 @@ import {
   Form,
 } from "remix";
 import { JokeDisplay } from "~/components/joke";
-import { db } from "~/utils/db.server";
 import { requireUserId, getUserId } from "~/utils/session.server";
+import { gql } from "graphql-request";
+import { client } from "~/lib/graphcms";
 
 export let loader: LoaderFunction = async ({ request }) => {
   let userId = await getUserId(request);
@@ -38,6 +39,22 @@ type ActionData = {
   };
 };
 
+const CreateJoke = gql`
+  mutation CreateJoke($name: String!, $content: String!, $userId: ID!) {
+    createJoke(
+      data: {
+        name: $name
+        content: $content
+        jokester: { connect: { id: $userId } }
+      }
+    ) {
+      id
+      name
+      content
+    }
+  }
+`;
+
 export let action: ActionFunction = async ({
   request,
 }): Promise<Response | ActionData> => {
@@ -57,7 +74,12 @@ export let action: ActionFunction = async ({
     return { fieldErrors, fields };
   }
 
-  let joke = await db.joke.create({ data: { ...fields, jokesterId: userId } });
+  let { joke } = await client.request(CreateJoke, {
+    name,
+    content,
+    userId,
+  });
+
   return redirect(`/jokes/${joke.id}`);
 };
 

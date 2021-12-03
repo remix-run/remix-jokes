@@ -1,7 +1,38 @@
+require("dotenv").config();
+
 import bcrypt from "bcrypt";
 import { createCookieSessionStorage, redirect } from "remix";
+import { gql } from "graphql-request";
+import { client } from "~/lib/graphcms";
 
-import { db } from "./db.server";
+export const FindByUsername = gql`
+  query FindByUsername($username: String!) {
+    user: remixUser(where: { username: $username }) {
+      id
+      username
+      passwordHash
+    }
+  }
+`;
+
+const RegisterMutation = gql`
+  mutation Register($username: String!, $password: String!) {
+    user: createRemixUser(
+      data: { username: $username, passwordHash: $password }
+    ) {
+      id
+    }
+  }
+`;
+
+const GetUserById = gql`
+  query GetUserById($id: ID!) {
+    user: remixUser(where: { id: $id }) {
+      id
+      username
+    }
+  }
+`;
 
 type LoginForm = {
   username: string;
@@ -10,13 +41,15 @@ type LoginForm = {
 
 export async function register({ username, password }: LoginForm) {
   let passwordHash = await bcrypt.hash(password, 10);
-  return db.user.create({
-    data: { username, passwordHash },
+  const { user } = await client.request(RegisterMutation, {
+    username,
+    password: passwordHash,
   });
+  return user;
 }
 
 export async function login({ username, password }: LoginForm) {
-  const user = await db.user.findUnique({ where: { username } });
+  const { user } = await client.request(FindByUsername, { username });
   if (!user) return null;
   const isCorrectPassword = await bcrypt.compare(password, user.passwordHash);
   if (!isCorrectPassword) return null;
@@ -63,7 +96,7 @@ export async function getUser(request: Request) {
   if (typeof userId !== "string") return null;
 
   try {
-    let user = await db.user.findUnique({ where: { id: userId } });
+    let { user } = await client.request(GetUserById, { id: userId });
     return user;
   } catch {
     throw logout(request);

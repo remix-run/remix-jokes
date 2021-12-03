@@ -6,9 +6,14 @@ import {
   MetaFunction,
 } from "remix";
 import { useActionData, Form } from "remix";
-import { login, createUserSession, register } from "~/utils/session.server";
-import { db } from "~/utils/db.server";
+import {
+  login,
+  createUserSession,
+  register,
+  FindByUsername,
+} from "~/utils/session.server";
 import stylesUrl from "../styles/login.css";
+import { client } from "~/lib/graphcms";
 
 export let meta: MetaFunction = () => {
   return {
@@ -80,7 +85,9 @@ export let action: ActionFunction = async ({
       return createUserSession(user.id, "/jokes");
     }
     case "register": {
-      let userExists = await db.user.findFirst({ where: { username } });
+      const { user: userExists } = await client.request(FindByUsername, {
+        username,
+      });
       if (userExists) {
         return {
           fields,
