@@ -77,7 +77,7 @@ export default function JokesScreen() {
                     </li>
                   ))}
                 </ul>
-                <Link to="new" className="button">
+                <Link to="new" className="button" prefetch="intent">
                   Add your own
                 </Link>
               </>
