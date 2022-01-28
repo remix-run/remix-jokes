@@ -27,7 +27,7 @@ export let loader: LoaderFunction = ({ request }) => {
 
   let url = new URL(request.url);
   let hostname = url.hostname;
-  let proto = request.headers.get("X-Forwarded-Proto") ?? url.protocol;
+  let proto = request.headers.get("X-Forwarded-Proto") ?? url.protocol.slice(0, -1);
 
   url.host =
     request.headers.get("X-Forwarded-Host") ??
