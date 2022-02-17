@@ -1,5 +1,1 @@
-# Welcome the Remix Jokes Tutorial Repo!
-
-This is the deployed version of the Remix Jokes Tutorial Repo: https://remix-jokes.lol
-
-The full tutorial is coming soon!
+This has moved: https://github.com/remix-run/remix/tree/main/examples/jokes
